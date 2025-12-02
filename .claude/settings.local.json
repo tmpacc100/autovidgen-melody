@@ -10,7 +10,9 @@
       "Bash(npm cache clean:*)",
       "Bash(taskkill:*)",
       "Bash(\"node_modules\\.bin\\electron.cmd\" --version)",
-      "Bash(\"node_modules\\.bin\\electron.cmd\" .)"
+      "Bash(\"node_modules\\.bin\\electron.cmd\" .)",
+      "Bash(git config:*)",
+      "Bash(git push:*)"
     ],
     "deny": [],
     "ask": []
