@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>動画生成アプリ</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>🎬 動画生成アプリ</h1>
+    <p class="subtitle">2本の動画を音声同期して縦動画を自動生成</p>
+
+    <div class="section">
+      <div class="section-header">
+        <h2>📁 入力ファイル</h2>
+        <button onclick="addVideoSet()" class="add-set-btn">＋ セット追加</button>
+      </div>
+
+      <div id="videoSetsContainer">
+        <!-- 動画セット1 -->
+        <div class="video-set" data-set-id="0">
+          <div class="set-header">
+            <span class="set-title">セット 1</span>
+            <button onclick="removeVideoSet(0)" class="delete-btn">🗑️ 削除</button>
+          </div>
+
+          <div class="input-grid">
+            <div class="input-group">
+              <label>🎥 動画1</label>
+              <div class="file-input">
+                <input type="text" class="video1Path" readonly placeholder="動画ファイルを選択...">
+                <button onclick="selectVideo1ForSet(0)">📂</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>🎥 動画2</label>
+              <div class="file-input">
+                <input type="text" class="video2Path" readonly placeholder="動画ファイルを選択...">
+                <button onclick="selectVideo2ForSet(0)">📂</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>🖼️ 参照JPEG <span class="optional">(任意)</span></label>
+              <div class="file-input">
+                <input type="text" class="referencePath" readonly placeholder="色調整用の画像">
+                <button onclick="selectReferenceForSet(0)">📂</button>
+              </div>
+            </div>
+
+            <div class="input-group">
+              <label>👤 アーティスト名</label>
+              <input type="text" class="artistName" placeholder="例: John Doe">
+            </div>
+
+            <div class="input-group">
+              <label>🎵 曲名</label>
+              <input type="text" class="songName" placeholder="例: Amazing Song">
+            </div>
+
+            <div class="input-group full-width">
+              <label>✏️ テキスト <span class="optional">(任意・改行で複数行)</span></label>
+              <textarea class="customText" rows="2" placeholder="例: の「」弾いてみた"></textarea>
+            </div>
+
+            <div class="input-group full-width">
+              <label>💾 出力先</label>
+              <div class="file-input">
+                <input type="text" class="outputPath" readonly placeholder="保存先を選択...">
+                <button onclick="selectOutputPathForSet(0)">📂</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <details class="section collapsible">
+      <summary>
+        <h2>⚙️ 詳細設定</h2>
+        <span class="toggle-icon">▼</span>
+      </summary>
+
+      <div class="settings-grid">
+        <div class="settings-group">
+          <h3>🔊 音声</h3>
+          <div class="input-group">
+            <label>同期許容誤差</label>
+            <input type="number" id="syncTolerance" value="50" min="0" max="500">
+            <small>ms</small>
+          </div>
+          <div class="input-group">
+            <label>目標LUFS</label>
+            <input type="number" id="targetLUFS" value="-14" min="-30" max="0" step="0.1">
+          </div>
+          <div class="input-group">
+            <label>音量ゲイン</label>
+            <input type="number" id="audioGain" value="0" min="-20" max="20" step="0.1">
+            <small>dB</small>
+          </div>
+          <div class="input-group">
+            <label>リミッター閾値</label>
+            <input type="number" id="limiterThreshold" value="-1" min="-10" max="0" step="0.1">
+            <small>dBTP</small>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>🎨 映像</h3>
+          <div class="input-group">
+            <label>ホワイトバランス</label>
+            <input type="number" id="whiteBalance" value="0.5" min="0" max="1" step="0.01">
+          </div>
+          <div class="input-group">
+            <label>彩度</label>
+            <input type="number" id="saturation" value="0.5" min="0" max="1" step="0.01">
+          </div>
+          <div class="input-group">
+            <label>コントラスト</label>
+            <input type="number" id="contrast" value="0.5" min="0" max="1" step="0.01">
+          </div>
+          <div class="input-group">
+            <label class="checkbox-label">
+              <input type="checkbox" id="enableFrameRateConversion" checked>
+              60fps変換
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>✏️ テキスト</h3>
+          <div class="input-group">
+            <label>フォント</label>
+            <select id="fontFamily">
+              <option value="msgothic">MS ゴシック</option>
+              <option value="msmincho">MS 明朝</option>
+              <option value="meiryo">メイリオ</option>
+              <option value="yugothic">游ゴシック</option>
+              <option value="arial">Arial</option>
+              <option value="times">Times</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>スタイル</label>
+            <select id="fontWeight">
+              <option value="normal">通常</option>
+              <option value="bold" selected>太字</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>テキスト色</label>
+            <select id="textColor">
+              <option value="white">白</option>
+              <option value="black" selected>黒</option>
+              <option value="red">赤</option>
+              <option value="yellow">黄</option>
+              <option value="green">緑</option>
+              <option value="blue">青</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>背景色</label>
+            <select id="bgColor">
+              <option value="black">黒</option>
+              <option value="white" selected>白</option>
+              <option value="red">赤</option>
+              <option value="yellow">黄</option>
+              <option value="green">緑</option>
+              <option value="blue">青</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>背景不透明度</label>
+            <input type="number" id="bgOpacity" value="1.0" min="0" max="1" step="0.1">
+          </div>
+          <div class="input-group">
+            <label>余白</label>
+            <input type="number" id="padding" value="10" min="0" max="100" step="5">
+            <small>px</small>
+          </div>
+          <div class="input-group">
+            <label>位置Y</label>
+            <input type="number" id="positionY" value="0.15" min="0" max="1" step="0.05">
+          </div>
+          <div class="input-group">
+            <label>最大幅</label>
+            <input type="number" id="maxBgWidthRatio" value="0.95" min="0.5" max="1.0" step="0.05">
+          </div>
+          <div class="input-group">
+            <label>最大高さ</label>
+            <input type="number" id="maxBgHeightRatio" value="0" min="0" max="0.5" step="0.05">
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <h3>📤 出力</h3>
+          <div class="input-group">
+            <label>解像度</label>
+            <input type="text" id="outputResolution" value="1080x1920 (HD)" readonly disabled>
+            <small>固定</small>
+          </div>
+          <div class="input-group">
+            <label>FPS</label>
+            <input type="text" id="outputFpsDisplay" value="60" readonly disabled>
+            <small>固定</small>
+          </div>
+          <div class="input-group">
+            <label>コーデック</label>
+            <select id="codec">
+              <option value="libx264">H.264</option>
+              <option value="libx265">H.265</option>
+            </select>
+          </div>
+          <div class="input-group">
+            <label>ビットレート</label>
+            <input type="text" id="bitrate" value="8M" placeholder="例: 8M">
+          </div>
+        </div>
+        <!-- 隠しフィールド（固定値） -->
+        <input type="hidden" id="outputWidth" value="1080">
+        <input type="hidden" id="outputHeight" value="1920">
+        <input type="hidden" id="outputFps" value="60">
+      </div>
+    </details>
+
+    <div style="display: flex; gap: 15px; justify-content: center;">
+      <button class="process-button" onclick="openCropWindow()" style="background: #FF9800; flex: 0 0 auto; min-width: 200px;">
+        <span class="button-icon">✂️</span>
+        <span>クロップ設定</span>
+      </button>
+      <button class="process-button" onclick="startBatchProcessing()" style="flex: 1;">
+        <span class="button-icon">▶️</span>
+        <span>処理開始</span>
+      </button>
+    </div>
+
+    <div class="section" id="progressSection" style="display: none;">
+      <h2>⏳ 処理状況</h2>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill">0%</div>
+      </div>
+      <p id="progressText">処理中...</p>
+    </div>
+
+    <div class="section" id="resultSection" style="display: none;">
+      <h2>✅ 処理結果</h2>
+      <div id="resultText"></div>
+    </div>
+  </div>
+
+  <script src="app.js"></script>
+</body>
+</html>

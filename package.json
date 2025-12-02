@@ -1,0 +1,63 @@
+{
+  "name": "video-generator-app",
+  "version": "1.0.0",
+  "description": "動画編集アプリケーション - 2本の動画を音声同期して1080x1920/60fpsのMP4を生成",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dev": "electron . --dev",
+    "build": "electron-builder",
+    "build:mac": "electron-builder --mac",
+    "build:win": "electron-builder --win",
+    "build:all": "electron-builder --mac --win"
+  },
+  "build": {
+    "appId": "com.videogenerator.app",
+    "productName": "動画生成アプリ",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.video",
+      "icon": "assets/icon.icns"
+    },
+    "win": {
+      "target": [
+        "nsis",
+        "portable"
+      ],
+      "icon": "assets/icon.ico"
+    }
+  },
+  "keywords": [
+    "video",
+    "editing",
+    "synchronization",
+    "electron"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@ffmpeg-installer/ffmpeg": "^1.1.0",
+    "@ffprobe-installer/ffprobe": "^1.4.1",
+    "canvas": "^3.2.0",
+    "fluent-ffmpeg": "^2.1.2",
+    "node-wav": "^0.0.2",
+    "sharp": "^0.33.0",
+    "wav": "^1.0.2"
+  },
+  "devDependencies": {
+    "electron": "^28.3.3",
+    "electron-builder": "^24.13.3",
+    "electron-reload": "^2.0.0-alpha.1"
+  }
+}

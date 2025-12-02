@@ -1,0 +1,18 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install:*)",
+      "Bash(pip install:*)",
+      "Bash(python:*)",
+      "Bash(npm start)",
+      "Bash(node -c:*)",
+      "Bash(node:*)",
+      "Bash(npm cache clean:*)",
+      "Bash(taskkill:*)",
+      "Bash(\"node_modules\\.bin\\electron.cmd\" --version)",
+      "Bash(\"node_modules\\.bin\\electron.cmd\" .)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

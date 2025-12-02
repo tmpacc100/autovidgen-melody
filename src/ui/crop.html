@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>クロップ設定</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Yu Gothic', sans-serif;
+      background: #1a1a1a;
+      color: #fff;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+    }
+
+    .toolbar {
+      background: #2a2a2a;
+      padding: 15px 20px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      border-bottom: 1px solid #3a3a3a;
+    }
+
+    .toolbar h2 {
+      margin: 0;
+      font-size: 18px;
+      flex-grow: 1;
+    }
+
+    .toolbar .controls {
+      display: flex;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .toolbar label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+    }
+
+    .toolbar input[type="number"] {
+      width: 70px;
+      padding: 5px 8px;
+      background: #3a3a3a;
+      border: 1px solid #4a4a4a;
+      color: #fff;
+      border-radius: 4px;
+      font-size: 13px;
+    }
+
+    .toolbar button {
+      padding: 8px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+      transition: all 0.2s;
+    }
+
+    .btn-reset {
+      background: #555;
+      color: #fff;
+    }
+
+    .btn-reset:hover {
+      background: #666;
+    }
+
+    .btn-apply {
+      background: #4CAF50;
+      color: #fff;
+    }
+
+    .btn-apply:hover {
+      background: #45a049;
+    }
+
+    .btn-cancel {
+      background: #f44336;
+      color: #fff;
+    }
+
+    .btn-cancel:hover {
+      background: #da190b;
+    }
+
+    .preview-container {
+      flex: 1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      position: relative;
+      overflow: auto;
+    }
+
+    .video-wrapper {
+      position: relative;
+      display: inline-block;
+    }
+
+    video {
+      display: block;
+      max-width: 90vw;
+      max-height: calc(100vh - 200px);
+      border: 2px solid #4a4a4a;
+    }
+
+    .crop-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+    }
+
+    .crop-rect {
+      position: absolute;
+      border: 2px solid #4CAF50;
+      box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.6);
+      pointer-events: all;
+      cursor: move;
+    }
+
+    .crop-handle {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      background: #4CAF50;
+      border: 2px solid #fff;
+      border-radius: 50%;
+      pointer-events: all;
+    }
+
+    .crop-handle.nw { top: -6px; left: -6px; cursor: nw-resize; }
+    .crop-handle.ne { top: -6px; right: -6px; cursor: ne-resize; }
+    .crop-handle.sw { bottom: -6px; left: -6px; cursor: sw-resize; }
+    .crop-handle.se { bottom: -6px; right: -6px; cursor: se-resize; }
+    .crop-handle.n { top: -6px; left: 50%; margin-left: -6px; cursor: n-resize; }
+    .crop-handle.s { bottom: -6px; left: 50%; margin-left: -6px; cursor: s-resize; }
+    .crop-handle.w { top: 50%; left: -6px; margin-top: -6px; cursor: w-resize; }
+    .crop-handle.e { top: 50%; right: -6px; margin-top: -6px; cursor: e-resize; }
+
+    .crop-info {
+      position: absolute;
+      bottom: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(0, 0, 0, 0.8);
+      padding: 8px 15px;
+      border-radius: 4px;
+      font-size: 12px;
+      font-family: monospace;
+    }
+
+    .timeline-container {
+      background: #2a2a2a;
+      padding: 20px;
+      border-top: 1px solid #3a3a3a;
+    }
+
+    .timeline-wrapper {
+      max-width: 900px;
+      margin: 0 auto;
+    }
+
+    .timeline-controls {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 15px;
+      justify-content: center;
+    }
+
+    .timeline-controls button {
+      padding: 8px 16px;
+      background: #4CAF50;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+
+    .timeline-controls button:hover {
+      background: #45a049;
+    }
+
+    .timeline-controls button:disabled {
+      background: #555;
+      cursor: not-allowed;
+    }
+
+    .timeline-track {
+      position: relative;
+      height: 60px;
+      background: #1a1a1a;
+      border-radius: 4px;
+      margin-bottom: 10px;
+      cursor: pointer;
+    }
+
+    .timeline-progress {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      background: #555;
+      border-radius: 4px;
+    }
+
+    .timeline-selection {
+      position: absolute;
+      top: 0;
+      height: 100%;
+      background: rgba(76, 175, 80, 0.3);
+      border-left: 3px solid #4CAF50;
+      border-right: 3px solid #4CAF50;
+    }
+
+    .timeline-handle {
+      position: absolute;
+      top: 0;
+      width: 12px;
+      height: 100%;
+      background: #4CAF50;
+      cursor: ew-resize;
+      transition: background 0.2s;
+    }
+
+    .timeline-handle:hover {
+      background: #45a049;
+    }
+
+    .timeline-handle.start {
+      left: -6px;
+      border-radius: 4px 0 0 4px;
+    }
+
+    .timeline-handle.end {
+      right: -6px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .timeline-time-labels {
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: #999;
+      margin-top: 5px;
+      font-family: monospace;
+    }
+
+    .timeline-info {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 13px;
+      color: #ccc;
+    }
+
+    .status-bar {
+      background: #2a2a2a;
+      padding: 10px 20px;
+      border-top: 1px solid #3a3a3a;
+      font-size: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .hint {
+      color: #999;
+    }
+
+    .loading {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 16px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="toolbar">
+    <h2>🎬 クロップ設定</h2>
+    <div class="controls">
+      <label>
+        動画:
+        <select id="videoSelect" onchange="switchVideo()">
+          <option value="video1">動画1</option>
+          <option value="video2">動画2</option>
+        </select>
+      </label>
+      <label>
+        幅:
+        <input type="number" id="cropWidth" min="100" step="1">
+        <span>px</span>
+      </label>
+      <label>
+        高さ:
+        <input type="number" id="cropHeight" min="100" step="1">
+        <span>px</span>
+      </label>
+      <label>
+        回転:
+        <select id="rotation">
+          <option value="0">0°</option>
+          <option value="90">90°</option>
+          <option value="180">180°</option>
+          <option value="270">270°</option>
+        </select>
+      </label>
+      <label>
+        ズーム:
+        <input type="number" id="zoom" value="100" min="50" max="200" step="10">
+        <span>%</span>
+      </label>
+      <button class="btn-reset" onclick="resetCrop()">リセット</button>
+      <button class="btn-cancel" onclick="cancel()">キャンセル</button>
+      <button class="btn-apply" onclick="applyCrop()">適用</button>
+    </div>
+  </div>
+
+  <div class="preview-container">
+    <div class="loading" id="loading">動画を読み込み中...</div>
+    <div class="video-wrapper" id="videoWrapper" style="display: none;">
+      <video id="videoPreview" controls></video>
+      <div class="crop-overlay" id="cropOverlay">
+        <div class="crop-rect" id="cropRect">
+          <div class="crop-handle nw" data-handle="nw"></div>
+          <div class="crop-handle n" data-handle="n"></div>
+          <div class="crop-handle ne" data-handle="ne"></div>
+          <div class="crop-handle w" data-handle="w"></div>
+          <div class="crop-handle e" data-handle="e"></div>
+          <div class="crop-handle sw" data-handle="sw"></div>
+          <div class="crop-handle s" data-handle="s"></div>
+          <div class="crop-handle se" data-handle="se"></div>
+        </div>
+        <div class="crop-info" id="cropInfo">
+          X: 0, Y: 0, W: 0, H: 0
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="timeline-container">
+    <div class="timeline-wrapper">
+      <div class="timeline-controls">
+        <button onclick="togglePlayPause()" id="playPauseBtn">▶ 再生</button>
+        <button onclick="toggleLoop()" id="loopBtn">🔁 ループ: OFF</button>
+      </div>
+
+      <div class="timeline-track" id="timelineTrack">
+        <div class="timeline-progress" id="timelineProgress"></div>
+        <div class="timeline-selection" id="timelineSelection">
+          <div class="timeline-handle start" id="startHandle"></div>
+          <div class="timeline-handle end" id="endHandle"></div>
+        </div>
+      </div>
+
+      <div class="timeline-time-labels">
+        <span id="startLabel">0.0s</span>
+        <span id="currentLabel">0.0s</span>
+        <span id="endLabel">0.0s</span>
+      </div>
+
+      <div class="timeline-info">
+        <span>選択範囲: <strong id="selectionDuration">0.0秒</strong></span>
+      </div>
+    </div>
+  </div>
+
+  <div class="status-bar">
+    <span id="statusText">動画ファイルを読み込んでいます...</span>
+    <span class="hint">ドラッグで移動 | ハンドルでサイズ変更 | タイムラインで時間調整</span>
+  </div>
+
+  <script src="crop.js"></script>
+</body>
+</html>
