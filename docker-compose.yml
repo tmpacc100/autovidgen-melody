@@ -1,0 +1,104 @@
+services:
+  # Full Electron GUI app with X11 (works on all architectures)
+  video-app-gui:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      platforms:
+        - linux/amd64
+        - linux/arm64
+    image: video-generator-app:latest
+    container_name: video-app-gui
+    volumes:
+      # Mount input and output directories
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./temp:/app/temp
+      # For X11 forwarding (Linux/Mac)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      # Use host X11 display (Linux/Mac)
+      - DISPLAY=${DISPLAY:-:99}
+      - ELECTRON_DISABLE_SANDBOX=1
+      - NODE_ENV=production
+    # Use host network for X11 (alternative)
+    # network_mode: host
+    ports:
+      # VNC port for remote viewing
+      - "5900:5900"
+    devices:
+      # GPU access (optional, for hardware acceleration)
+      - /dev/dri:/dev/dri
+    restart: unless-stopped
+
+  # Xvfb mode - GUI runs in virtual display (no X11 forwarding needed)
+  video-app-headless:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: video-generator-app:latest
+    container_name: video-app-headless
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - DISPLAY=:99
+      - ELECTRON_DISABLE_SANDBOX=1
+      - NODE_ENV=production
+      # Enable VNC for remote viewing
+      - ENABLE_VNC=true
+    ports:
+      - "5900:5900"
+    restart: unless-stopped
+    profiles:
+      - headless
+
+  # Development mode with live reload
+  video-app-dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: video-generator-app:latest
+    container_name: video-app-dev
+    volumes:
+      # Live reload - mount source code
+      - ./src:/app/src
+      - ./package.json:/app/package.json
+      - ./input:/app/input
+      - ./output:/app/output
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+    environment:
+      - DISPLAY=${DISPLAY:-:99}
+      - ELECTRON_DISABLE_SANDBOX=1
+      - NODE_ENV=development
+      - ENABLE_VNC=true
+    ports:
+      - "5900:5900"
+    command: ["npm", "run", "dev"]
+    profiles:
+      - dev
+
+  # Worker-only mode (no GUI)
+  video-worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: video-generator-app:latest
+    container_name: video-worker
+    volumes:
+      - ./input:/app/input
+      - ./output:/app/output
+      - ./temp:/app/temp
+    environment:
+      - NODE_ENV=production
+    command: ["node", "src/worker.js"]
+    restart: unless-stopped
+    profiles:
+      - worker
+
+# Project name
+name: video-generator-app
+
+# For multi-architecture builds
+# Usage: docker buildx build --platform linux/amd64,linux/arm64 -t video-generator-app:latest .

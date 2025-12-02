@@ -12,7 +12,12 @@
       "Bash(\"node_modules\\.bin\\electron.cmd\" --version)",
       "Bash(\"node_modules\\.bin\\electron.cmd\" .)",
       "Bash(git config:*)",
-      "Bash(git push:*)"
+      "Bash(git push:*)",
+      "Bash(docker build:*)",
+      "Bash(docker run:*)",
+      "Bash(docker logs:*)",
+      "Bash(docker stop:*)",
+      "Bash(docker rm:*)"
     ],
     "deny": [],
     "ask": []

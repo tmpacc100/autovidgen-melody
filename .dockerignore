@@ -1,0 +1,69 @@
+# Node modules (will be installed in container)
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Temporary files
+temp/
+tmp/
+*.tmp
+
+# Output files
+output/
+output.mp4
+*.output.mp4
+
+# Test files
+test-videos/
+*.test.mp4
+
+# Git
+.git/
+.gitignore
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Logs
+*.log
+npm-debug.log*
+
+# Documentation
+*.md
+!README.md
+
+# Python cache
+__pycache__/
+*.pyc
+venv/
+env/
+
+# Development files
+test-ffmpeg.js
+test-videos.bat
+.claude/
+
+# Large media files (examples)
+*.mp4
+*.mov
+*.avi
+*.mkv
+*.jpg
+*.jpeg
+*.png
+
+# Docker files (don't copy these into the image)
+Dockerfile
+.dockerignore
+docker-compose.yml
